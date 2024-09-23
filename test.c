@@ -1,14 +1,13 @@
 #include <assert.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "json_parser.h"
+#include "parser.h"
 
 void test_testing(void)
 {
-	assert(true);
+	assert(TRUE);
 }
 
 void test_valid(char *fname)

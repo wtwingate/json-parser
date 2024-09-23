@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "json_parser.h"
+#include "parser.h"
 
 int main(void)
 {
