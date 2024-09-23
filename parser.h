@@ -1,12 +1,12 @@
 #define FALSE 0
 #define TRUE  1
 
-struct token {
+typedef struct Token {
 	int symbol;
 	char *value;
-};
+} token_t;
 
-enum t_symbols {
+enum symbols {
 	BEGIN_ARRAY,
 	BEGIN_OBJECT,
 	END_ARRAY,
@@ -18,5 +18,5 @@ enum t_symbols {
 	LITERAL
 };
 
-struct token *tokenizer(char *s, int *out_len);
+token_t *tokenize(char *s, int *array_len);
 int is_valid_json(char *s);
