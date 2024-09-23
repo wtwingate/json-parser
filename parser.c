@@ -4,6 +4,38 @@
 
 #include "parser.h"
 
+char *read_file(char *fname)
+{
+	FILE *file = fopen(fname, "r");
+	if (!file) {
+		perror("read_file -> fopen");
+		return NULL;
+	}
+	
+	fseek(file, 0, SEEK_END);
+	long fsize = ftell(file);
+	rewind(file);
+
+	char *buf = malloc(fsize + 1);
+	if (!buf) {
+		perror("read_file -> malloc");
+		fclose(file);
+		return NULL;
+	}
+	
+	size_t bytes_read = fread(buf, 1, fsize, file);
+	if (bytes_read != (size_t) fsize) {
+		perror("read_file -> fread");
+		fclose(file);
+		free(buf);
+		return NULL;
+	}
+	
+	buf[fsize] = '\0';
+	fclose(file);
+	return buf;
+}
+
 token_t *tokenize(char *s, int *array_len)
 {
 	int t_len = 8;
@@ -68,6 +100,8 @@ int is_valid_json(char *s)
 			return FALSE;
 		}
 	}
+
+	free(t_array);
 
 	if (objects == 0) {
 		return TRUE;

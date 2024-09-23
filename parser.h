@@ -18,5 +18,6 @@ enum symbols {
 	LITERAL
 };
 
+char *read_file(char *fname);
 token_t *tokenize(char *s, int *array_len);
 int is_valid_json(char *s);
