@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,16 +39,13 @@ char *read_file(char *fname)
 
 token_t *tokenize(char *s, int *array_len)
 {
-	int t_len = 8;
 	int t_idx = 0;
-
-	token_t *t_array = malloc(sizeof(token_t) * t_len);
+	token_t *t_array = malloc(sizeof(token_t) * MAXSIZE);
 
 	for (int i = 0; s[i] != '\0'; i++) {
-		/* dynamically allocate token array */
-		if (t_idx > t_len) {
-			t_len *= 2;
-			t_array = realloc(t_array, t_len);
+		if (t_idx > MAXSIZE) {
+			printf("Error: token array exceeds max size");
+			return NULL;
 		}
 
 		switch (s[i]) {
@@ -75,20 +73,54 @@ token_t *tokenize(char *s, int *array_len)
 				{
 					i++;
 					int j = i;
-					while (s[j] != '"') {
+					while (s[j] != '"')
 						j++;
-					}
-					int ss_len = j - i;
-					char *substr = malloc(ss_len);
-					memcpy(substr, s + i, ss_len);
-					substr[ss_len] = '\0';
+					int s_len = j - i;
+					char *substr = malloc(s_len);
+					memcpy(substr, s + i, s_len);
+					substr[s_len] = '\0';
 					t_array[t_idx].symbol = STRING;
 					t_array[t_idx].value = substr;
 					i = j;
 					t_idx++;
 					break;
 				}
+			case '0': case '1': case '2': case '3': case '4':
+			case '5': case '6': case '7': case '8': case '9':
+				if (!isspace(s[i - 1]))
+					break;
+
+				{
+					int j = i;
+					while (isdigit(s[j]))
+						j++;
+					int s_len = j - i;
+					char *substr = malloc(s_len);
+					memcpy(substr, s + i, s_len);
+					substr[s_len] = '\0';
+					t_array[t_idx].symbol = NUMBER;
+					t_array[t_idx].value = substr;
+					i = j;
+					t_idx++;
+					break;
+				}
 			default:
+				if (!strncmp("true", s + i, 4)) {
+					t_array[t_idx].symbol = LITERAL;
+					t_array[t_idx].value = "true";
+					i += 3;
+					t_idx++;
+				} else if (!strncmp("false", s + i, 5)) {
+					t_array[t_idx].symbol = LITERAL;
+					t_array[t_idx].value = "false";
+					i += 4;
+					t_idx++;
+				} else if (!strncmp("null", s + i, 4)) {
+					t_array[t_idx].symbol = LITERAL;
+					t_array[t_idx].value = "null";
+					i += 3;
+					t_idx++;
+				}
 				break;
 		}
 	}
@@ -121,8 +153,9 @@ int is_valid_json(char *s)
 	print_token_array(t_array, array_len);
 
 	for (int i = 0; i < array_len; i++) {
-		if (objects < 0)
+		if (objects < 0) {
 			return FALSE;
+		}
 
 		switch (t_array[i].symbol) {
 			case BEGIN_OBJECT:
@@ -132,22 +165,26 @@ int is_valid_json(char *s)
 				objects--;
 				break;
 			case NAME_SEP:
-				if (t_array[i - 1].symbol != STRING)
+				if (t_array[i - 1].symbol != STRING) {
 					return FALSE;
+				}
 				if (t_array[i + 1].symbol != BEGIN_OBJECT &&
 						t_array[i + 1].symbol != BEGIN_ARRAY &&
 						t_array[i + 1].symbol != NUMBER &&
 						t_array[i + 1].symbol != STRING &&
-						t_array[i + 1].symbol != LITERAL)
+						t_array[i + 1].symbol != LITERAL) {
 					return FALSE;
+				}
 				break;
 			case VALUE_SEP:
 				if (t_array[i - 1].symbol == BEGIN_OBJECT ||
-						t_array[i - 1].symbol == BEGIN_ARRAY)
+						t_array[i - 1].symbol == BEGIN_ARRAY) {
 					return FALSE;
+				}
 				if (t_array[i + 1].symbol == END_OBJECT ||
-						t_array[i + i].symbol == END_ARRAY)
+						t_array[i + i].symbol == END_ARRAY) {
 					return FALSE;
+				}
 				break;
 			default:
 				/* return FALSE; */

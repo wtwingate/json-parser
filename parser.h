@@ -1,5 +1,6 @@
-#define FALSE 0
-#define TRUE  1
+#define FALSE    0
+#define TRUE     1
+#define MAXSIZE  100
 
 typedef struct Token {
 	int symbol;
@@ -21,3 +22,4 @@ enum symbols {
 char *read_file(char *fname);
 token_t *tokenize(char *s, int *array_len);
 int is_valid_json(char *s);
+void print_token_array(token_t *t_array, int array_len);
