@@ -40,6 +40,7 @@ token_t *tokenize(char *s, int *array_len)
 {
 	int t_len = 8;
 	int t_idx = 0;
+
 	token_t *t_array = malloc(sizeof(token_t) * t_len);
 
 	for (int i = 0; s[i] != '\0'; i++) {
@@ -53,17 +54,38 @@ token_t *tokenize(char *s, int *array_len)
 		case '{':
 			t_array[t_idx].symbol = BEGIN_OBJECT;
 			t_array[t_idx].value = "{";
+			t_idx++;
 			break;
 		case '}':
 			t_array[t_idx].symbol = END_OBJECT;
 			t_array[t_idx].value = "}";
+			t_idx++;
+			break;
+		case ':':
+			t_array[t_idx].symbol = NAME_SEP;
+			t_array[t_idx].value = ":";
+			t_idx++;
+			break;
+		case '"':
+			{
+				i++;
+				int j = i;
+				while (s[j] != '"') {
+					j++;
+				}
+				int ss_len = j - i;
+				char *substr = malloc(ss_len);
+				memcpy(substr, s + i, ss_len);
+				substr[ss_len] = '\0';
+				t_array[t_idx].symbol = STRING;
+				t_array[t_idx].value = substr;
+				i = j;
+			}
+			t_idx++;
 			break;
 		default:
-			t_array[t_idx].symbol = -1;
-			t_array[t_idx].value = "";
 			break;
 		}
-		t_idx++;
 	}
 
 	*array_len = t_idx;
@@ -77,12 +99,12 @@ int is_valid_json(char *s)
 	if (strlen(s) == 0)
 		return FALSE;
 
-	int t_len = 0;
-	token_t *t_array = tokenize(s, &t_len);
+	int array_len = 0;
+	token_t *t_array = tokenize(s, &array_len);
 
 	int objects = 0;
 
-	for (int i = 0; i < t_len; i++) {
+	for (int i = 0; i < array_len; i++) {
 		printf("symbol: %d | value: %s\n",
 		       t_array[i].symbol, t_array[i].value);
 
@@ -97,7 +119,8 @@ int is_valid_json(char *s)
 			objects--;
 			break;
 		default:
-			return FALSE;
+			/* return FALSE; */
+			break;
 		}
 	}
 
