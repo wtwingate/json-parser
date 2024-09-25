@@ -34,8 +34,8 @@ int main(void)
 	test_invalid_json("test_cases/step1/invalid.json");
 	test_valid_json("test_cases/step2/valid.json");
 	test_valid_json("test_cases/step2/valid2.json");
-	/* test_invalid_json("test_cases/step2/invalid.json"); */
-	/* test_invalid_json("test_cases/step2/invalid2.json"); */
+	test_invalid_json("test_cases/step2/invalid.json");
+	test_invalid_json("test_cases/step2/invalid2.json");
 
 	printf("All tests passed!\n");
 	return 0;

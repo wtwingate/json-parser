@@ -11,7 +11,7 @@ char *read_file(char *fname)
 		perror("read_file -> fopen");
 		return NULL;
 	}
-	
+
 	fseek(file, 0, SEEK_END);
 	long fsize = ftell(file);
 	rewind(file);
@@ -22,7 +22,7 @@ char *read_file(char *fname)
 		fclose(file);
 		return NULL;
 	}
-	
+
 	size_t bytes_read = fread(buf, 1, fsize, file);
 	if (bytes_read != (size_t) fsize) {
 		perror("read_file -> fread");
@@ -30,7 +30,7 @@ char *read_file(char *fname)
 		free(buf);
 		return NULL;
 	}
-	
+
 	buf[fsize] = '\0';
 	fclose(file);
 	return buf;
@@ -45,51 +45,65 @@ token_t *tokenize(char *s, int *array_len)
 
 	for (int i = 0; s[i] != '\0'; i++) {
 		/* dynamically allocate token array */
-		if (t_idx == t_len) {
+		if (t_idx > t_len) {
 			t_len *= 2;
 			t_array = realloc(t_array, t_len);
 		}
 
 		switch (s[i]) {
-		case '{':
-			t_array[t_idx].symbol = BEGIN_OBJECT;
-			t_array[t_idx].value = "{";
-			t_idx++;
-			break;
-		case '}':
-			t_array[t_idx].symbol = END_OBJECT;
-			t_array[t_idx].value = "}";
-			t_idx++;
-			break;
-		case ':':
-			t_array[t_idx].symbol = NAME_SEP;
-			t_array[t_idx].value = ":";
-			t_idx++;
-			break;
-		case '"':
-			{
-				i++;
-				int j = i;
-				while (s[j] != '"') {
-					j++;
+			case '{':
+				t_array[t_idx].symbol = BEGIN_OBJECT;
+				t_array[t_idx].value = "{";
+				t_idx++;
+				break;
+			case '}':
+				t_array[t_idx].symbol = END_OBJECT;
+				t_array[t_idx].value = "}";
+				t_idx++;
+				break;
+			case ':':
+				t_array[t_idx].symbol = NAME_SEP;
+				t_array[t_idx].value = ":";
+				t_idx++;
+				break;
+			case ',':
+				t_array[t_idx].symbol = VALUE_SEP;
+				t_array[t_idx].value = ",";
+				t_idx++;
+				break;
+			case '"':
+				{
+					i++;
+					int j = i;
+					while (s[j] != '"') {
+						j++;
+					}
+					int ss_len = j - i;
+					char *substr = malloc(ss_len);
+					memcpy(substr, s + i, ss_len);
+					substr[ss_len] = '\0';
+					t_array[t_idx].symbol = STRING;
+					t_array[t_idx].value = substr;
+					i = j;
+					t_idx++;
+					break;
 				}
-				int ss_len = j - i;
-				char *substr = malloc(ss_len);
-				memcpy(substr, s + i, ss_len);
-				substr[ss_len] = '\0';
-				t_array[t_idx].symbol = STRING;
-				t_array[t_idx].value = substr;
-				i = j;
-			}
-			t_idx++;
-			break;
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 
 	*array_len = t_idx;
 	return t_array;
+}
+
+void print_token_array(token_t *t_array, int array_len)
+{
+	for (int i = 0; i < array_len; i++) {
+		printf("symbol: %d | value: %s\n",
+				t_array[i].symbol,
+				t_array[i].value);
+	}
 }
 
 int is_valid_json(char *s)
@@ -104,23 +118,40 @@ int is_valid_json(char *s)
 
 	int objects = 0;
 
-	for (int i = 0; i < array_len; i++) {
-		printf("symbol: %d | value: %s\n",
-		       t_array[i].symbol, t_array[i].value);
+	print_token_array(t_array, array_len);
 
+	for (int i = 0; i < array_len; i++) {
 		if (objects < 0)
 			return FALSE;
 
 		switch (t_array[i].symbol) {
-		case BEGIN_OBJECT:
-			objects++;
-			break;
-		case END_OBJECT:
-			objects--;
-			break;
-		default:
-			/* return FALSE; */
-			break;
+			case BEGIN_OBJECT:
+				objects++;
+				break;
+			case END_OBJECT:
+				objects--;
+				break;
+			case NAME_SEP:
+				if (t_array[i - 1].symbol != STRING)
+					return FALSE;
+				if (t_array[i + 1].symbol != BEGIN_OBJECT &&
+						t_array[i + 1].symbol != BEGIN_ARRAY &&
+						t_array[i + 1].symbol != NUMBER &&
+						t_array[i + 1].symbol != STRING &&
+						t_array[i + 1].symbol != LITERAL)
+					return FALSE;
+				break;
+			case VALUE_SEP:
+				if (t_array[i - 1].symbol == BEGIN_OBJECT ||
+						t_array[i - 1].symbol == BEGIN_ARRAY)
+					return FALSE;
+				if (t_array[i + 1].symbol == END_OBJECT ||
+						t_array[i + i].symbol == END_ARRAY)
+					return FALSE;
+				break;
+			default:
+				/* return FALSE; */
+				break;
 		}
 	}
 
