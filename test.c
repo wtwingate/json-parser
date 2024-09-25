@@ -41,6 +41,10 @@ int main(void)
 	test_valid_json("test_cases/step3/valid.json");
 	test_invalid_json("test_cases/step3/invalid.json");
 
+	test_valid_json("test_cases/step4/valid.json");
+	test_valid_json("test_cases/step4/valid2.json");
+	test_invalid_json("test_cases/step4/invalid.json");
+
 	printf("All tests passed!\n");
 	return 0;
 }

@@ -8,6 +8,7 @@ typedef struct Token {
 } token_t;
 
 enum symbols {
+	UNKNOWN,
 	BEGIN_ARRAY,
 	BEGIN_OBJECT,
 	END_ARRAY,

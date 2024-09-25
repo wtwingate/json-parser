@@ -59,6 +59,16 @@ token_t *tokenize(char *s, int *array_len)
 				t_array[t_idx].value = "}";
 				t_idx++;
 				break;
+			case '[':
+				t_array[t_idx].symbol = BEGIN_ARRAY;
+				t_array[t_idx].value = "[";
+				t_idx++;
+				break;
+			case ']':
+				t_array[t_idx].symbol = END_ARRAY;
+				t_array[t_idx].value = "]";
+				t_idx++;
+				break;
 			case ':':
 				t_array[t_idx].symbol = NAME_SEP;
 				t_array[t_idx].value = ":";
@@ -104,6 +114,8 @@ token_t *tokenize(char *s, int *array_len)
 					t_idx++;
 					break;
 				}
+			case ' ': case '\t': case '\n': case '\r':
+				break;
 			default:
 				if (!strncmp("true", s + i, 4)) {
 					t_array[t_idx].symbol = LITERAL;
@@ -119,6 +131,10 @@ token_t *tokenize(char *s, int *array_len)
 					t_array[t_idx].symbol = LITERAL;
 					t_array[t_idx].value = "null";
 					i += 3;
+					t_idx++;
+				} else {
+					t_array[t_idx].symbol = UNKNOWN;
+					t_array[t_idx].value = "";
 					t_idx++;
 				}
 				break;
@@ -149,20 +165,29 @@ int is_valid_json(char *s)
 	token_t *t_array = tokenize(s, &array_len);
 
 	int objects = 0;
+	int arrays = 0;
 
 	print_token_array(t_array, array_len);
 
 	for (int i = 0; i < array_len; i++) {
-		if (objects < 0) {
+		if (objects < 0 || arrays < 0) {
 			return FALSE;
 		}
 
 		switch (t_array[i].symbol) {
+			case UNKNOWN:
+				return FALSE;
 			case BEGIN_OBJECT:
 				objects++;
 				break;
 			case END_OBJECT:
 				objects--;
+				break;
+			case BEGIN_ARRAY:
+				arrays++;
+				break;
+			case END_ARRAY:
+				arrays--;
 				break;
 			case NAME_SEP:
 				if (t_array[i - 1].symbol != STRING) {
@@ -187,14 +212,13 @@ int is_valid_json(char *s)
 				}
 				break;
 			default:
-				/* return FALSE; */
 				break;
 		}
 	}
 
 	free(t_array);
 
-	if (objects == 0) {
+	if (objects == 0 && arrays == 0) {
 		return TRUE;
 	} else {
 		return FALSE;
