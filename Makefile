@@ -3,11 +3,12 @@ CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic
 
 SRCS = src/lexer.c src/token.c
 HDRS = src/lexer.h src/token.h
+TSTS = tests/lexer_test.c
 
 .PHONY: fmt test
 
 fmt:
-	clang-format -i $(SRCS) $(HDRS)
+	clang-format -i $(SRCS) $(HDRS) $(TSTS)
 
 test:
-	$(CC) $(CFLAGS) -o tests/run tests/lexer_test.c $(SRCS) && ./tests/run
+	$(CC) $(CFLAGS) -o tests/run $(TSTS) $(SRCS) && ./tests/run

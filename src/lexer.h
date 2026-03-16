@@ -3,12 +3,12 @@
 #include "token.h"
 #include <stdlib.h>
 
-typedef struct {
-    char *input;
-    size_t len;
-    size_t pos;
-    size_t read_pos;
-    char c;
+typedef struct Lexer {
+  char *input;
+  size_t len;
+  size_t pos;
+  size_t read_pos;
+  char c;
 } Lexer;
 
 Lexer new_lexer(char *input);
