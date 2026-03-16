@@ -17,3 +17,5 @@ void lexer_skip_whitespace(Lexer *l);
 void lexer_read_char(Lexer *l);
 char lexer_peek_char(Lexer *l);
 char *lexer_read_string(Lexer *l);
+char *lexer_read_number(Lexer *l);
+char *lexer_read_literal(Lexer *l);

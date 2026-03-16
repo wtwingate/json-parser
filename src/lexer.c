@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "token.h"
+#include <ctype.h>
 #include <string.h>
 
 Lexer new_lexer(char *input) {
@@ -37,14 +38,36 @@ Token lexer_next_token(Lexer *l) {
   case ',':
     token = new_token(TOKEN_VALUE_SEPARATOR, ",");
     break;
-  case '"':
-    token = new_token(TOKEN_STRING, lexer_read_string(l));
+  case '"': {
+    char *literal = lexer_read_string(l);
+    if (literal == NULL) {
+      token = new_token(TOKEN_ILLEGAL, "");
+    } else {
+      token = new_token(TOKEN_STRING, literal);
+    }
     break;
+  }
   case '\0':
     token = new_token(TOKEN_EOF, "");
     break;
   default:
-    token = new_token(TOKEN_ILLEGAL, "");
+    if (isdigit(l->c) || l->c == '-') {
+      token = new_token(TOKEN_NUMBER, lexer_read_number(l));
+      return token;
+    } else if (isalpha(l->c)) {
+      char *literal = lexer_read_literal(l);
+      if (strcmp(literal, "true") == 0 || strcmp(literal, "false") == 0 ||
+          strcmp(literal, "null") == 0) {
+        token = new_token(TOKEN_LITERAL, literal);
+      } else {
+        token = new_token(TOKEN_ILLEGAL, "");
+        free(literal);
+      }
+      return token;
+    } else {
+      token = new_token(TOKEN_ILLEGAL, "");
+      break;
+    }
   }
 
   lexer_read_char(l);
@@ -78,7 +101,7 @@ char lexer_peek_char(Lexer *l) {
 }
 
 char *lexer_read_string(Lexer *l) {
-  size_t start_pos = l->read_pos;
+  size_t start_pos = l->pos;
 
   lexer_read_char(l);
 
@@ -96,7 +119,32 @@ char *lexer_read_string(Lexer *l) {
     return NULL;
   }
 
-  size_t len = (l->pos - start_pos);
+  size_t len = l->read_pos - start_pos;
+  return strndup(l->input + start_pos, len);
+}
 
-  return strndup(&l->input[start_pos], len);
+char *lexer_read_number(Lexer *l) {
+  size_t start_pos = l->pos;
+
+  lexer_read_char(l);
+
+  while (isdigit(l->c) || l->c == '.') {
+    lexer_read_char(l);
+  }
+
+  size_t len = l->pos - start_pos;
+  return strndup(l->input + start_pos, len);
+}
+
+char *lexer_read_literal(Lexer *l) {
+  size_t start_pos = l->pos;
+
+  lexer_read_char(l);
+
+  while (isalpha(l->c)) {
+    lexer_read_char(l);
+  }
+
+  size_t len = l->pos - start_pos;
+  return strndup(l->input + start_pos, len);
 }
