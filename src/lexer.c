@@ -45,14 +45,21 @@ Token lexer_next_token(Lexer *l) {
     } else {
       token = new_token(TOKEN_STRING, literal);
     }
-    break;
+    free(literal);
+    return token;
   }
   case '\0':
     token = new_token(TOKEN_EOF, "");
     break;
   default:
     if (isdigit(l->c) || l->c == '-') {
-      token = new_token(TOKEN_NUMBER, lexer_read_number(l));
+      char *literal = lexer_read_number(l);
+      if (literal == NULL) {
+        token = new_token(TOKEN_ILLEGAL, "");
+      } else {
+        token = new_token(TOKEN_NUMBER, literal);
+      }
+      free(literal);
       return token;
     } else if (isalpha(l->c)) {
       char *literal = lexer_read_literal(l);
@@ -61,13 +68,13 @@ Token lexer_next_token(Lexer *l) {
         token = new_token(TOKEN_LITERAL, literal);
       } else {
         token = new_token(TOKEN_ILLEGAL, "");
-        free(literal);
       }
+      free(literal);
       return token;
     } else {
       token = new_token(TOKEN_ILLEGAL, "");
-      break;
     }
+    break;
   }
 
   lexer_read_char(l);
@@ -120,10 +127,20 @@ char *lexer_read_string(Lexer *l) {
   }
 
   size_t len = l->read_pos - start_pos;
-  return strndup(l->input + start_pos, len);
+  char *string = malloc(len + 1);
+  memcpy(string, l->input + start_pos, len);
+  string[len] = '\0';
+
+  lexer_read_char(l); // consume closing quote
+
+  return string;
 }
 
 char *lexer_read_number(Lexer *l) {
+  if (l->c == '-' && !isdigit(lexer_peek_char(l))) {
+    return NULL;
+  }
+
   size_t start_pos = l->pos;
 
   lexer_read_char(l);
@@ -133,7 +150,10 @@ char *lexer_read_number(Lexer *l) {
   }
 
   size_t len = l->pos - start_pos;
-  return strndup(l->input + start_pos, len);
+  char *number = malloc(len + 1);
+  memcpy(number, l->input + start_pos, len);
+  number[len] = '\0';
+  return number;
 }
 
 char *lexer_read_literal(Lexer *l) {
@@ -146,5 +166,8 @@ char *lexer_read_literal(Lexer *l) {
   }
 
   size_t len = l->pos - start_pos;
-  return strndup(l->input + start_pos, len);
+  char *literal = malloc(len + 1);
+  memcpy(literal, l->input + start_pos, len);
+  literal[len] = '\0';
+  return literal;
 }

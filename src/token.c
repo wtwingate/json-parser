@@ -3,7 +3,10 @@
 #include <string.h>
 
 Token new_token(TokenType type, char *literal) {
-  char *copy = strndup(literal, strlen(literal));
+  size_t len = strlen(literal);
+  char *copy = malloc(len + 1);
+  memcpy(copy, literal, len);
+  copy[len] = '\0';
 
   Token token = {
       .type = type,
@@ -24,7 +27,7 @@ char *token_type_name(TokenType tt) {
   case TOKEN_BEGIN_ARRAY:
     return "TOKEN_BEGIN_ARRAY";
   case TOKEN_BEGIN_OBJECT:
-    return "TOKEN_BEGIN_OBJECT:";
+    return "TOKEN_BEGIN_OBJECT";
   case TOKEN_END_ARRAY:
     return "TOKEN_END_ARRAY";
   case TOKEN_END_OBJECT:
