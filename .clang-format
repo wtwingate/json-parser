@@ -1,4 +1,7 @@
+# yaml-language-server: $schema=https://json.schemastore.org/clang-format-21.x.json
+---
 BasedOnStyle: LLVM
-IndentWidth: 2
-TabWidth: 8
-UseTab: Never
+IndentWidth: 8
+UseTab: Always
+BreakBeforeBraces: Linux
+---

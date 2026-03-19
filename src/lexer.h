@@ -4,11 +4,11 @@
 #include <stdlib.h>
 
 typedef struct Lexer {
-  char *input;
-  size_t len;
-  size_t pos;
-  size_t read_pos;
-  char c;
+	char *input;
+	size_t len;
+	size_t pos;
+	size_t read_pos;
+	char c;
 } Lexer;
 
 Lexer new_lexer(char *input);
